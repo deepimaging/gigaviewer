@@ -20,7 +20,7 @@ const Viewer = (props: any) => {
             }}
         >
             <div>
-                <Box position="absolute" top="80px" left="0%" zIndex="modal">
+                <Box position="absolute" left="0%" zIndex="modal">
                     <OpenSeaDragonViewer sources={imageSources} realImageHeight={realHeight} collectionTitle={title}
                                          initialFrame={initialFrame}/>
                 </Box>

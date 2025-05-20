@@ -1,20 +1,20 @@
 /* GENERAL NAVBAR STYLING */
 .navbar-items {
   background: linear-gradient(90deg, #37474f 0%, #78909c 100%);
-  height: 8vh;
+  min-height: 3.5em;
   display: flex;
   justify-content: left;
   align-items: center;
   font-size: 1.0rem;
+  gap: 1em;
+  flex-wrap: wrap;
 }
 
-.navbar-items-viewer {
-  background: linear-gradient(90deg, #37474f 0%, #78909c 100%);
-  height: 8vh;
-  display: flex;
-  justify-content: left;
-  align-items: center;
-  font-size: 1.0rem;
+.navbar-items-tag {
+  color : white;
+  padding-left: 1em;
+  padding-right: 1em;
+  text-decoration: none;
 }
 
 .navbar-logo {
@@ -22,7 +22,7 @@
   justify-self: left;
   margin-left: 1.5vw;
   cursor: pointer;
-  width: 40vw; /* default none */
+  /* width: 40vw; default none */
 }
 
 .navbar-logo-viewer {
@@ -70,6 +70,53 @@
   display: none;
 }
 
+.widget
+{
+  max-width: 50em;
+  padding: 2em;
+  box-shadow: 2px 2px 10px gray;
+  border-radius: 1em;
+  text-align: left;
+
+  margin-right: 1em;
+  margin-bottom: 1em;
+  margin-left: 1em;
+}
+
+.pub
+{
+  gap: 0.5em;
+  display: flex;
+  flex-direction: column;
+}
+
+.pub span
+{
+  cursor: pointer;
+}
+
+.pub span:hover
+{
+  text-decoration: underline;
+}
+
+.MuiGridListTile-tile
+{
+  border-radius: 1em;
+  box-shadow: 5px 5px 10px #8080806b;
+  cursor : "pointer",
+}
+
+.viewer-control
+{
+  pointer-events: none;
+}
+
+.viewer-control *
+{
+  pointer-events: auto;
+}
+
 @media screen and (max-width: 960px) {
   .navbar-items {
     position: relative;
@@ -81,7 +128,7 @@
     width: 100%;
     height: 500px;
     position: absolute;
-    top: 80px;
+    /* top: 80px; */
     left: -100%;
     opacity: 1;
     transition: all 0.5s ease;
@@ -105,13 +152,6 @@
   .nav-link:hover {
     background-color: #546e7a;
     border-radius: 0;
-  }
-
-  .navbar-logo {
-    position: absolute;
-    top: 0;
-    left: 0;
-    transform: translate(25%, 50%);
   }
 
   .menu-icon {

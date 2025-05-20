@@ -1,30 +1,18 @@
 import React from 'react';
 import { useHistory } from 'react-router-dom';
-
-/**
- * Uncomment for navbar items (About, Home, Signup, etc.)
- */
-// import NavButton from './NavButton';
-// import IconButton from '@material-ui/core/IconButton';
-// import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
-// import NavigateNextIcon from '@material-ui/icons/NavigateNext';
-// import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
-// import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
-// import RefreshIcon from '@material-ui/icons/Refresh';
-// import FullscreenIcon from '@material-ui/icons/Fullscreen';
-// import Box from '@material-ui/core/Box';
+import {url_orig} from "url.js"
+import {NavBar} from "./NavBar.js"
 
 import {
-  // faTimes,
-  // faBars,
   faMicroscope,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-// import { MenuItems } from './utils';
 import './style.css';
 
 interface PublicProps {
   isViewerMode?: boolean;
+  path: string[];
+  tag?: string;
 }
 
 /**
@@ -32,66 +20,32 @@ interface PublicProps {
  */
 const TopNavbar = (props: PublicProps) => {
   const history = useHistory();
-  // const [isMenuIconClicked, setIsMenuIconClicked] = useState(false);
-
-  // const handleMenuIconClicked = () => {
-  //   setIsMenuIconClicked(!isMenuIconClicked);
-  // };
 
   const goToHome = () => {
-    history.push('');
+    history.push(url_orig);
   }
+
+  const style = {
+    display : props.tag == null || props.tag == "" ? "none" : ""
+  };
 
   return (
     <div>
-      {(!props.isViewerMode) 
       
-      ? 
-      /**
-       * DURING NON-VIEWER MODE
-       */
       <nav className="navbar-items">
         <h1 className="navbar-logo" onClick={goToHome}>
-          Gigaviewer
-          <FontAwesomeIcon icon={faMicroscope}/>
+          Gigaviewer <FontAwesomeIcon icon={faMicroscope}/>
         </h1>
 
-        {/* <div className="menu-icon" onClick={handleMenuIconClicked}>
-          {isMenuIconClicked ? (
-            <FontAwesomeIcon icon={faTimes} />
-          ) : (
-            <FontAwesomeIcon icon={faBars} />
-          )}
-        </div>
+        <NavBar path={props.path} />
 
-        <ul className={isMenuIconClicked ? 'nav-menu active' : 'nav-menu'}>
-          {MenuItems.map((item, index) => {
-            return (
-              <li key={index}>
-                <a className={item.cName} href={item.url}>
-                  {item.title}
-                </a>
-              </li>
-            );
-          })}
-        </ul> */}
+        <div style={{ flexGrow: 1 }}></div>
 
-        {/* <div className="navbar-upload">
-          <NavButton />
-        </div> */}
+        <a className="navbar-items-tag" href={"/" + url_orig + "tag/" + props.tag}>
+          <h2 style={style}>#{props.tag}</h2>
+        </a>
       </nav>
-
-      : 
-      /**
-       * DURING VIEWER MODE
-       */
-      <nav className="navbar-items-viewer">
-        <h1 className="navbar-logo-viewer" onClick={goToHome}>
-          Gigaviewer
-          <FontAwesomeIcon icon={faMicroscope}/>
-        </h1>
-      </nav>
-      }
+    
     </div>
   );
 };

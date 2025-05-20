@@ -1,125 +1,183 @@
-import json
+import string
+import random
 import os
-import glob
 from natsort import natsorted
+import json
+from operator import attrgetter
 import shutil
-from distutils.dir_util import copy_tree
-import cv2 as cv
-import numpy as np
 
-GV_BASE_URL = 'https://gigazoom.rc.duke.edu/'
+nb_char_tag = 4
+start_dir = "auto"
+max_depth = 3
 
-def get_path_from_url(url):
-    return os.path.join('/home/rapiduser/', url[len(GV_BASE_URL):])
+config_file_name="config.json"
 
-def make_url(path):
-    return os.path.join(GV_BASE_URL, path)
+kind=[None, 'team', 'project', 'capture']
 
-def make_composite(image_paths):
-    images = [cv.imread(image_path) for image_path in image_paths]
-    composite = np.zeros((300,300,3), dtype=np.uint8)
-    if len(images) == 0:
-        raise RuntimeError()
-    elif len(images) == 1:
-        composite = cv.resize(images[0], (300, 300))
-    elif len(images) == 2:
-        composite = cv.resize(images[0], (300, 300))
-        composite[:, 150:] = cv.resize(images[1], (300, 300))[:, 150:]
-    elif len(images) == 3:
-        composite[:150, :150] = cv.resize(images[0], (150, 150))
-        composite[:, 150:] = cv.resize(images[1], (300, 300))[:, 150:]
-        composite[150:, :150] = cv.resize(images[2], (150, 150))
-    else:
-        composite[:150, :150] = cv.resize(images[0], (150, 150))
-        composite[:150, 150:] = cv.resize(images[1], (150, 150))
-        composite[150:, :150] = cv.resize(images[2], (150, 150))
-        composite[150:, 150:] = cv.resize(images[3], (150, 150))
-    return composite
+# Create a string containing all lowercase letters and digits.
+# To use this option the RenderFromTag (App.js) function needs to be
+# updated for lower case. 
+# characters = string.ascii_lowercase + string.digits
 
-def generate_group(base_dir):
-    with open(os.path.join(base_dir, 'order.json')) as fp:
-        order_data = json.load(fp)['order']
-    dzi_files = [os.path.join(base_dir, of) for of in order_data]
-    meta_path = os.path.join(base_dir, 'metadata.json')
-    if os.path.exists(meta_path):
-        with open(meta_path) as fp:
-            meta = json.load(fp)
-    else:
-        meta = {}
-    if 'height' in meta:
-        height = meta['height']
-    else:
-        height = 0.07424
-    gid = os.path.basename(base_dir)
-    if gid == '':
-        gid = os.path.basename(os.path.dirname(base_dir))
-    # HARDCODING FOR NOW
-    title = gid
-    source_type = 'Visible'
-    idx = 0
-    thumbnail_folder = os.path.splitext(dzi_files[0])[0] + "_files"
-    pyramid_folders = natsorted(glob.glob(os.path.join(thumbnail_folder, '*/')))[::-1]
-    # now iterate backwards until there is only a single file in the folder
-    for pf in pyramid_folders:
-        images = glob.glob(os.path.join(pf, '*.*'))
-        if len(images) == 1:
-            break
-    thumbnail_image = images[0]
-    
-    group_data = {
-        'gid': gid,
-        'title': title,
-        'thumbnailImg': make_url(thumbnail_image),
-        'idx': idx,
-        'kind': 'capture',
-        'height': height,
-        'sources': [
-            {
-                'type': source_type,
-                'tileSources': [make_url(dzi_file) for dzi_file in dzi_files]
-            }
-        ]
-    }
-    
-    return group_data
+# Using a hex array.
+characters = "0123456789ABCDEF"
 
-if __name__ == "__main__":
-    manifest_data = {}
-    # first get the team folders
-    teams = glob.glob(os.path.join('auto', '*/')
-    print("teams: ", teams)
-    manifest_data = {"groups": {}}
-    for team in teams:
-        team_data = {'groups': {}, 'kind': 'team'}
-        team_data['title'] = os.path.basename(team[:-1])
-        # then get the projects
-        projects = glob.glob(os.path.join(team, '*/')
-        print("projects: ", projects)
-        for project in projects:
-            project_data = {'groups': {}}
-            project_name = os.path.basename(project[:-1])
-            project_data['title'] = project_name
-            captures = glob.glob(os.path.join(project, '*/')
-            print("captures: ", captures)
-            for capture in captures:
-                capture_data = generate_group(capture)
-                capture_name = capture_data['title']
-                project_data['groups'][capture_name] = capture_data
-            groups = project_data['groups']
-            # make the composite image for the project
-            target_image_paths = [get_path_from_url(group['thumbnailImg']) for group in groups.values()]
-            composite_image = make_composite(target_image_paths)
-            thumb_img_path = os.path.join(project, f'{project_name}-thumbnail.jpg').replace(' ', '-')
-            cv.imwrite(thumb_img_path, composite_image)
-            project_data['thumbnailImg'] = make_url(thumb_img_path)
-            team_data['groups'][project_name] = project_data
-        # lazily grabbing the last thumbnail image
-        team_data['thumbnailImg'] = thumb_img_path
-        manifest_data['groups'][team_data['title']] = team_data
+# Convert the string to an array of characters.
+# character_array = list(characters)
 
-    with open('image_manifest.json', 'w') as fp:
-        json.dump(manifest_data, fp)
+nb_char = len(characters)
+# print("Number of unique tags possible", nb_char**nb_char_tag)
 
-    shutil.copy2('image_manifest.json', '/home/rapiduser/gigaviewer/gigaviewer-ui/src/components/image-viewer/imageMetadata.json')
-    os.system('yarn --cwd /home/rapiduser/gigaviewer/gigaviewer-ui/ build')
-    copy_tree('/home/rapiduser/gigaviewer/gigaviewer-ui/build/', '/var/www/html/')
+def generate_random_string(length=nb_char_tag):
+  result = ''.join(random.choice(characters) for i in range(length))
+  return result
+
+# random_string = generate_random_string()
+# print(random_string)
+
+def get_meta():
+  try:
+    with open(config_file_name) as file:
+      data = json.load(file)
+
+    return data
+  except:
+    return {}
+
+tags=[]
+
+def loadOrder(obj):
+  try:
+    with open( 'order.json') as file:
+      data = json.load(file)['order']
+
+    obj["sources"] = [ {"tileSources" : data} ]
+    return True
+  except:
+    return False
+
+def addThumbnailImage(obj):
+  path = os.path.splitext(obj["sources"][0]["tileSources"][0])[0] + "_files"
+  os.chdir(path)
+
+  dir = natsorted(os.scandir(),key=attrgetter("name"))
+
+  thumbnailImg = None
+
+  for item in dir:
+    if item.is_dir():
+      res = os.listdir(item.name)
+
+      if len(res) == 1:
+        thumbnailImg = path + "/" + item.name + "/" + res[0]
+      elif len(res) > 1:
+        break
+  
+  if thumbnailImg == None:
+    raise Exception('Problem finding thumbnail')
+  
+  os.chdir("../")
+
+  obj["thumbnailImg"] = thumbnailImg
+
+def list_dir(path=start_dir, depth=0):
+  if depth > max_depth:
+    return
+  # if path.find("stitched") != -1 or path.startswith("height_map") or path.isnumeric():
+  #   return {}
+  
+  print('  ' * depth + "", path)
+  os.chdir(path)
+
+  obj={}
+  #dir = os.scandir()
+  dir = natsorted(os.scandir(),key=attrgetter("name"))
+
+  groups = {}
+  files = []
+  
+  for item in dir:
+    if item.is_dir():
+      res = list_dir(item.name, depth+1)
+      if res:
+        groups[item.name] = res
+    elif item.name != config_file_name:
+      files.append(item.name)
+  
+  if groups:
+    obj["groups"] = groups
+  if "order.json" in files:
+    loadOrder(obj)
+    addThumbnailImage(obj)
+  if "metadata.json" in files:
+    print("Metadata found but not supported!!")
+  # if path + "-thumbnail.jpg" in files:
+  #   obj["thumbnailImg"] = path + "-thumbnail.jpg"
+  # if not (path + "-thumbnail.jpg") in files:
+  #   images = [name+"/"+obj["groups"][name]['thumbnailImg'] for name in obj["groups"]]
+  #   print( images )
+  
+  meta = get_meta()
+  
+  if depth > 0 and "tag" in meta:
+    obj["tag"] = meta["tag"]
+    tags.append(meta["tag"])
+
+  # if depth > 0 and not "thumbnailImg" in obj and obj['groups']:
+  #   tmp = list(obj["groups"].items())[-1]
+  #   if "thumbnailImg" in tmp[1]:
+  #     obj["thumbnailImg"] = tmp[0] + "/" + tmp[1]["thumbnailImg"]
+  
+  if kind[depth]:
+    obj["kind"] = kind[depth]
+
+  os.chdir("../")
+  return obj
+
+def list_dir_add_tag(obj, path=start_dir, depth=0):
+  if not obj:
+    return
+  
+  os.chdir(path)
+
+  if "groups" in obj:
+    for item in obj["groups"]:
+      list_dir_add_tag(obj["groups"][item], item, depth+1)
+  
+  if depth > 0 and not "tag" in obj:
+    obj["tag"] = createUniqueTag()
+    meta = {"tag" : obj["tag"]}
+    with open(config_file_name, "w") as file:
+      file.write( json.dumps(meta) )
+  
+  os.chdir("../")
+
+
+def createUniqueTag():
+  # tag = generate_random_string()
+  # while tag in tags:
+  global nb_char_tag
+
+  for i in range(20):
+    tag = generate_random_string(nb_char_tag)
+    if tag not in tags:
+      tags.append(tag)
+      return tag
+  
+  nb_char_tag = nb_char_tag + 1
+  print("Increase tag length to", nb_char_tag)
+  return createUniqueTag()
+
+orig_path = os.getcwd()
+
+obj = list_dir()
+os.chdir(orig_path)
+list_dir_add_tag(obj)
+os.chdir(orig_path)
+
+print("Number of tags in use", len(tags), "of", nb_char**nb_char_tag, "(%i^%i)"%(nb_char,nb_char_tag))
+
+with open("imageMetadata.json", "w") as file:
+  file.write( json.dumps(obj) )
+
+shutil.copy2('imageMetadata.json', '/var/www/html/imageMetadata.json')

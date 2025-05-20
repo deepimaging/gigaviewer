@@ -12,6 +12,9 @@ import {makeStyles} from '@material-ui/core/styles';
 import IconButton from '@material-ui/core/IconButton';
 import InfoIcon from '@material-ui/icons/Info';
 
+import {url, url_orig} from "url.js"
+import {ImageThumb, getThumbnailArray} from "./imageThumb.js"
+
 const useStyles = makeStyles((theme) => ({
     container: {
         marginLeft: '1vw',
@@ -20,18 +23,27 @@ const useStyles = makeStyles((theme) => ({
     root: {
         display: 'flex',
         flexWrap: 'wrap',
-        justifyContent: 'space-around',
-        overflow: 'hidden',
+        justifyContent: 'center',
+        padding:'1em',
         backgroundColor: theme.palette.background.paper,
     },
     gridList: {
-        width: 'auto',
-        height: 'auto',
-        justifyContent: 'space-evenly',
+        justifyContent: 'center',
+        overflow: 'visible',
+        gap:"1em",
     },
     icon: {
         color: 'rgba(255, 255, 255, 0.54)',
     },
+    gridItem : {
+      borderRadius: "1em",
+      boxShadow: "5px 5px 10px #8080806b",
+      cursor : "pointer",
+      width: "300px !important" as any,
+      height: "300px !important" as any,
+      padding: "0px !important" as any,
+    }
+
 }));
 
 /**
@@ -45,6 +57,21 @@ const ImageGrid = (props: any) => {
     const [captureId, setCaptureId] = useState('');
     const [frameNumber, setFrameNumber] = useState(0);
     const [redirect, setRedirect] = useState(false);
+
+    function getPath(key: string)
+    {
+      const item = gridData.groups[key];
+      const pathname = window.location.pathname.slice(url_orig.length);
+
+      let path = `${pathname}/${key}/${item.thumbnailImg}`;
+
+      if (path.startsWith("/team/"))
+        path = url + url_orig + path.replace("/team/", "/auto/");
+      else
+        path = url + url_orig + "/auto/" + path;
+      
+      return path;
+    }
 
     function consoleIcon(e: any) {
         e.stopPropagation();
@@ -60,14 +87,16 @@ const ImageGrid = (props: any) => {
             console.log('project id', "N/A");
         } else if (tile_kind === 'project') {
             // grab team id from the URL (first param)
-            const tid =window.location.pathname.split('/')[2]
+            const path = window.location.pathname.split('/');
+            const tid = path[path.length-1];
             setTeamId(tid)
             setProjectId(tile_id)
             console.log("team id", tid)
             console.log('project id', tile_id);
         } else if (tile_kind === 'capture') {
-            const tid = window.location.pathname.split('/')[2]
-            const pid = window.location.pathname.split('/')[3]
+            const path = window.location.pathname.split('/');
+            const tid = path[path.length-2];
+            const pid = path[path.length-1];
             setTeamId(tid);
             setProjectId(pid);
             setCaptureId(tile_id);
@@ -81,7 +110,6 @@ const ImageGrid = (props: any) => {
         console.log("Redirecting to render grid");
     }
 
-    // @ts-ignore
     return (
         <div className={classes.container}>
             <br/>
@@ -113,20 +141,15 @@ const ImageGrid = (props: any) => {
                             spacing={10}
                         >
                             {/*RENDERING A GRID*/}
-                            {Object.keys(gridData.groups).map((item, index) => (
+                            {Object.keys(gridData.groups).map(key => (
                                 // Doesn't have a folder property
-                                <GridListTile
-                                    key={item}
-                                    style={{height: 300, width: 300}}
+                                <GridListTile className={classes.gridItem}
                                     onClick={() => {
-                                        renderGrid(gridData.groups[item], item);
+                                      renderGrid(gridData.groups[key], key);
                                     }}
                                 >
-                                    <img src={gridData.groups[item].thumbnailImg} alt={gridData.groups[item].title}/>
-                                    <GridListTileBar
-                                        title={gridData.groups[item].title}
-
-                                    />
+                                    <ImageThumb img={getThumbnailArray(gridData,key)}/>
+                                    <GridListTileBar title={key} />
                                 </GridListTile>
                             ))}
                         </GridList>

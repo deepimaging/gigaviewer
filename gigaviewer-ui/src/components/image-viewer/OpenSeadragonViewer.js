@@ -6,6 +6,7 @@ import '@openseadragon-imaging/openseadragon-imaginghelper';
 
 import {getScalebarSizeAndTextForMetric} from './utils';
 import Draggable from 'react-draggable';
+import {url, url_orig} from "url.js"
 
 import {
     Box,
@@ -68,6 +69,14 @@ const useStyles = makeStyles((theme) => ({
         },
     },
 }));
+
+const style_title = {
+  backgroundColor: "rgba(255, 255, 255, 0.7)",
+  borderRadius: "0.5em",
+  paddingLeft: "0.3em",
+//   boxShadow: "2px 2px 10px #8080804d",
+  paddingRight: "0.3em",
+};
 
 const PrettoSlider = withStyles({
     root: {
@@ -181,13 +190,26 @@ const OpenSeadragonViewer = ({sources, realImageHeight, initialFrame, collection
     const leftBound = new OpenSeaDragon.Point(0, 0);
     const rightBound = new OpenSeaDragon.Point(13000, 0);
 
+    function getPath(tileSources)
+    {
+        let pathname = window.location.pathname.slice(url_orig.length);
+        pathname = pathname.slice(0, pathname.lastIndexOf('/'));
+        pathname = pathname.replace("/viewer/", "/auto/")
+
+        if ( Array.isArray(tileSources) )
+          return tileSources.map( val => `${url+url_orig}${pathname}/${val}` );
+        else
+          return [`${url+url_orig}${pathname}/${tileSources}`];
+    }
+
     useEffect(() => {
         if (sources) {
             if (sources.length > 0) {
                 const tempTotal = sources[0].tileSources.length;
                 setTotalFrames(tempTotal);
                 setCacheSliderValue(10 > tempTotal ? tempTotal : 10);
-                InitOpenseadragon(sources[0].tileSources);
+
+                InitOpenseadragon( getPath(sources[0].tileSources) );
                 setFrameAtIndex(0, 0, sources[0].tileSources.length);
             }
             resizeWindow();
@@ -507,7 +529,7 @@ const OpenSeadragonViewer = ({sources, realImageHeight, initialFrame, collection
                 maxZoomPixelRatio: 8,
                 showNavigator: true,
                 maxImageCacheCount: 4096,
-                navigatorPosition: 'TOP_LEFT',
+                navigatorPosition: 'BOTTOM_LEFT',
                 loadTilesWithAjax: true,
                 preload: true,
                 showSequenceControl: false,
@@ -577,8 +599,8 @@ const OpenSeadragonViewer = ({sources, realImageHeight, initialFrame, collection
 
                 <div className={classes.root}>
                     <Box flexDirection="column" position="absolute" top="0%" right="1%" zIndex="tooltip"
-                         justifyContent="center">
-                        <h1 style={{backgroundColor: 'white'}}>{collectionTitle}</h1>
+                         justifyContent="center" className="viewer-control" >
+                        <h1 style={style_title}>{collectionTitle}</h1>
                         {totalFrames > 1 &&
                         <div>
                             <Box display="flex" flexDirection="row" justifyContent="center">
