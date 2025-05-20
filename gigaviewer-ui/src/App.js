@@ -85,6 +85,16 @@ function RenderBrowser(){
             </p>
             <br/><ul className='pub'>
                 
+                <Pub authors={"K. Kim, A. Chaware, C. B. Cook, S. Xu, M. Abdelmalak, C. L. Cooke, "+
+                             "K. C. Zhou, M. Harfouche, P. Reamey, V. Saliu, J. Doman, C. Dugo, "+
+                             "G. Horstmeyer, R. Davis, I. Taylor-Cho, W. Foo, L. Kreiss, X. S. Jiang, "+
+                             "R. Horstmeyer"}
+                     title="Rapid 3D imaging at cellular resolution for digital cytopathology with a multi-camera array scanner (MCAS)"
+                     publisher=""
+                     year={2024}
+                     // link="https://gigazoom.rc.duke.edu/"
+                     project="MCAS-48" />
+                
                 <Pub authors={"K. C. Zhou, M. Harfouche, C. L. Cooke, J. Park, P. C. Konda, "+
                               "L. Kreiss, K. Kim, J. Jönsson, T. Doman, P. Reamey, V. Saliu, "+
                               "C. B. Cook, M. Zheng, J. P. Bechtel, A. Begue, M. McCarroll, "+
